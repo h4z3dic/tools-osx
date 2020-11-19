@@ -99,21 +99,8 @@ EOF
 }
 
 install_java() {
-    brew tap AdoptOpenJDK/openjdk
-    brew cask install adoptopenjdk8
-    brew cask install adoptopenjdk11
-
-    if [[ -z $(brew list 2>/dev/null | grep "jenv") ]]; then
-        echo "Installing jEnv..."
-        brew install jenv
-        echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
-        echo 'eval "$(jenv init -)"' >> ~/.zshrc
-        export PATH="$HOME/.jenv/bin:$PATH"
-        eval "$(jenv init -)"
-    fi
-
-    jenv add $(/usr/libexec/java_home -v 1.8)
-    jenv add $(/usr/libexec/java_home -v 11)
+    curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
 }
 
 install_vim() {
