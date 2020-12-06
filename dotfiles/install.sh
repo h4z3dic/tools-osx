@@ -50,12 +50,29 @@ install_ohmyzsh() {
 
 install_python() {
     PYTHON_VERSION="3.8.6"
-    
+
     if [[ -z $(brew list 2>/dev/null | grep "pyenv") ]]; then
         echo "Installing Pyenv to install and manage multiple versions of Python..."
         brew install pyenv
-        echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
         eval "$(pyenv init -)"
+        echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+        git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+        eval "$(pyenv virtualenv-init -)"
+cat >> ~/.zshrc << 'EOF'
+eval "$(pyenv virtualenv-init -)"
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+export BASE_PROMPT=$PS1
+function updatePrompt {
+    if [[ $VIRTUAL_ENV != "" ]]; then
+    ¦   export PS1="(${VIRTUAL_ENV##*/}) "$BASE_PROMPT
+    else
+    ¦   export PS1=$BASE_PROMPT
+    fi
+}
+export PROMPT_COMMAND='updatePrompt'
+precmd() { eval '$PROMPT_COMMAND' }
+
+EOF
     fi
 
     brew install zlib
@@ -66,14 +83,15 @@ install_python() {
         echo "Installing Python v$PYTHON_VERSION"
         CPPFLAGS="-I$(brew --prefix zlib)/include -I$(brew --prefix readline)/include -I$(brew --prefix openssl)/include -I$(xcrun --show-sdk-path)/usr/include" \
         LDFLAGS="-L$(brew --prefix zlib)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix openssl)/lib" \
-        PYTHON_CONFIGURE_OPTS="--enable-framework" \
+        PYTHON_CONFIGURE_OPTS="--enable-shared" \
         pyenv install $PYTHON_VERSION
         pyenv global $PYTHON_VERSION
     fi
 cat >> ~/.zshrc << 'EOF'
 export CPPFLAGS="-I$(brew --prefix zlib)/include -I$(brew --prefix readline)/include -I$(brew --prefix openssl)/include -I$(xcrun --show-sdk-path)/usr/include"
 export LDFLAGS="-L$(brew --prefix zlib)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix openssl)/lib"
-export PYTHON_CONFIGURE_OPTS="--enable-framework"
+export PYTHON_CONFIGURE_OPTS="--enable-shared"
+
 EOF
 }
 
@@ -94,6 +112,7 @@ cat >> ~/.zshrc << 'EOF'
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export PATH=$PATH:/usr/local/opt/go/bin:$GOBIN
+
 EOF
     fi
 }
@@ -125,7 +144,7 @@ install_vim() {
         ln -sf $HOME/.vim $HOME/.config/nvim
         ln -sf $HOME/.vimrc $HOME/.config/nvim/init.vim
     fi
-    
+
     if [ -z "$(ls -A $HOME/Library/Fonts)" ]; then
         echo "Installing patched fonts for Powerline..."
         cp -f $SCRIPT_PATH/fonts/* $HOME/Library/Fonts
