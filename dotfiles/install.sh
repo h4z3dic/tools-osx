@@ -64,9 +64,9 @@ export PYENV_VIRTUALENV_DISABLE_PROMPT=1
 export BASE_PROMPT=$PS1
 function updatePrompt {
     if [[ $VIRTUAL_ENV != "" ]]; then
-    ¦   export PS1="(${VIRTUAL_ENV##*/}) "$BASE_PROMPT
+        export PS1="(${VIRTUAL_ENV##*/}) "$BASE_PROMPT
     else
-    ¦   export PS1=$BASE_PROMPT
+        export PS1=$BASE_PROMPT
     fi
 }
 export PROMPT_COMMAND='updatePrompt'
