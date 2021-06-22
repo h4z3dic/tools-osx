@@ -181,20 +181,22 @@ command W w !sudo tee % > /dev/null
 
 " Type AA to selects whole buffer
 nnoremap AA ggVG
-" vv to select the line, like yy, dd
-nnoremap vv 0v$
 
 " Create window splits easier, the default way is Ctrl-w,v and Ctrl-w,s
 " i remap this to vv and ss
 nnoremap <silent> vv <C-w>v
 nnoremap <silent> ss <C-w>s
 
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+nnoremap <C-h> <C-w>h
+
 " Window simple resize navigation
-"   Shift + arrow - resize the window
-nnoremap <S-Left> <C-w><<CR>
-nnoremap <S-Right> <C-w>><CR>
-nnoremap <S-Up> <C-w>-<CR>
-nnoremap <S-Down> <C-w>+<CR>
+" nnoremap <S-Left> <C-w><<CR>
+" nnoremap <S-Right> <C-w>><CR>
+" nnoremap <S-Up> <C-w>-<CR>
+" nnoremap <S-Down> <C-w>+<CR>
 
 map <S-l> :bnext<CR>
 map <S-h> :bprevious<CR>

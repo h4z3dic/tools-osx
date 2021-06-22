@@ -49,60 +49,96 @@ let NERDTreeIgnore = [
 let g:NERDTreeDirArrowExpandable = '▸'
 let g:NERDTreeDirArrowCollapsible = '▾'
 
-autocmd bufenter * if (winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree()) | q | endif
-
 nnoremap <silent> ` :NERDTreeToggle<CR>
-
-Plug 'wesleyche/SrcExpl'
-
-let g:SrcExpl_winHeight = 15
-let g:SrcExpl_refreshTime = 100
-let g:SrcExpl_jumpKey = "<ENTER>"
-let g:SrcExpl_gobackKey = "<SPACE>"
-let g:SrcExpl_pluginList = [
-            \ "__Tag_List__",
-            \ "_NERD_tree_",
-            \ "Source_Explorer"
-            \ ]
-let g:SrcExpl_colorSchemeList = [
-            \ "Red",
-            \ "Cyan",
-            \ "Green",
-            \ "Yellow",
-            \ "Magenta"
-            \ ]
-let g:SrcExpl_searchLocalDef = 1
-let g:SrcExpl_nestedAutoCmd = 1
-let g:SrcExpl_isUpdateTags = 0
-let g:SrcExpl_updateTagsCmd = "ctags --sort=foldcase -R ."
-let g:SrcExpl_updateTagsKey = "<F12>"
-let g:SrcExpl_prevDefKey = "<F3>"
-let g:SrcExpl_nextDefKey = "<F4>"
-
-nnoremap <F8> :SrcExplToggle<CR>
 
 Plug 'majutsushi/tagbar'
 
 let g:tagbar_width = 40
 let g:tagbar_autofocus = 1
 
-nnoremap <F9> :TagbarToggle<CR>
+nnoremap <F7> :TagbarToggle<CR>
 
-Plug 'jsfaint/gen_tags.vim'
+Plug 'wesleyche/SrcExpl'
 
-let g:gen_tags#ctags_use_cache_dir = 0
+let g:SrcExpl_winHeight = 25
+let g:SrcExpl_refreshTime = 100
+let g:SrcExpl_jumpKey = "<ENTER>"
+let g:SrcExpl_gobackKey = "<SPACE>"
+let g:SrcExpl_pluginList = [
+            \ "_NERD_tree_",
+            \ "__Tagbar__",
+            \ "Source_Explorer"
+            \ ]
+let g:SrcExpl_searchLocalDef = 1
+let g:SrcExpl_isUpdateTags = 0
+let g:SrcExpl_nestedAutoCmd = 1
+let g:SrcExpl_updateTagsCmd = "ctags --sort=foldcase -R ."
+let g:SrcExpl_updateTagsKey = "<C-F12>"
+let g:SrcExpl_prevDefKey = "<C-F3>"
+let g:SrcExpl_nextDefKey = "<C-F4>"
 
-Plug 'ronakg/quickr-cscope.vim'
+nnoremap <F8> :TagbarToggle<CR>:NERDTreeToggle<CR>:SrcExplToggle<CR><C-W><C-L>
 
-let g:quickr_cscope_keymaps = 0
-let g:quickr_cscope_program = 'gtags-cscope'
-let g:quickr_cscope_db_file = 'GTAGS'
-let g:quickr_cscope_autoload_db = 0
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
-nnoremap <leader>s <Plug>(quickr_cscope_symbols)
-nnoremap <leader>g <Plug>(quickr_cscope_global)
-nnoremap <leader>c <Plug>(quickr_cscope_callers)
-nnoremap <leader>d <Plug>(quickr_cscope_functions)
+function! CheckLeftBuffers()
+    if tabpagenr('$') == 1
+        let i = 1
+        while i <= winnr('$')
+            " echom getbufvar(winbufnr(i), '&buftype')
+            if getbufvar(winbufnr(i), '&buftype') == 'help' ||
+                        \ getbufvar(winbufnr(i), '&buftype') == 'quickfix' ||
+                        \ exists('t:NERDTreeBufName') &&
+                        \   bufname(winbufnr(i)) == t:NERDTreeBufName ||
+                        \ bufname(winbufnr(i)) == '__Tagbar__' ||
+                        \ bufname(winbufnr(i)) == 'Source_Explorer' ||
+                        \ getwinvar(i, 'SrcExpl') == 1
+                let i += 1
+            else
+                break
+            endif
+        endwhile
+        if i == winnr('$') + 1
+            qall
+        endif
+        unlet i
+    endif
+endfunction
+autocmd BufEnter * call CheckLeftBuffers()
+
+Plug 'ludovicchabant/vim-gutentags'
+" let g:gutentags_trace = 1
+
+let g:gitroot = substitute(system('git rev-parse --show-toplevel 2>/dev/null'), '[\n\r]', '', 'g')
+if g:gitroot !=# ''
+    let g:gutentags_cache_dir = g:gitroot .'/.git/tags'
+else
+    let g:gutentags_cache_dir = $HOME .'/.cache/guten_tags'
+endif
+let g:gutentags_exclude_project_root = ['/usr/local', $HOME]
+let g:guten_tags_file_list_command = {
+            \ 'markers': {
+            \ '.git': 'git ls-files',
+            \ },
+            \ }
+let g:gutentags_resolve_symlinks = 1
+let g:gutentags_generate_on_missing =1
+let g:gutentags_generate_on_new = 1
+let g:gutentags_generate_on_write = 1
+
+if exists(':terminal')
+    if has('nvim-0.4.0') || has('patch-8.2.191')
+        Plug 'chengzeyi/multiterm.vim'
+        " Put the following lines in your configuration file to map <F12> to use Multiterm
+        nmap <F12> <Plug>(Multiterm)
+        " In terminal mode `count` is impossible to press, but you can still use <F12>
+        " to close the current floating terminal window without specifying its tag
+        tmap <F12> <Plug>(Multiterm)
+        " If you want to toggle in insert mode and visual mode
+        imap <F12> <Plug>(Multiterm)
+        xmap <F12> <Plug>(Multiterm)
+    endif
+endif
 
 Plug 'Yggdroot/indentLine'
 
@@ -128,9 +164,6 @@ let g:closetag_filenames = '*.html,*.js,*.jsx'
 Plug 'jiangmiao/auto-pairs'
 Plug 'tpope/vim-endwise'
 
-Plug 'hallison/vim-markdown', { 'for': 'markdown' }
-Plug 'elzr/vim-json', { 'for': 'json' }
-
 Plug 'othree/html5.vim', { 'for': ['html', 'djangohtml'] }
 Plug 'hail2u/vim-css3-syntax', { 'for': ['html', 'css', 'sass', 'scss', 'less', 'djangohtml'] }
 Plug 'groenewege/vim-less', { 'for': 'less' }
@@ -148,7 +181,12 @@ Plug 'jason0x43/vim-js-indent', { 'for': ['javascript', 'typescript'] }
 Plug 'neoclide/vim-jsx-improve', { 'for': ['jsx', 'javascript.jsx'] }
 
 Plug 'Vimjas/vim-python-pep8-indent', { 'for': ['python', 'python3', 'djangohtml'] }
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'hallison/vim-markdown', { 'for': 'markdown' }
+Plug 'elzr/vim-json', { 'for': 'json' }
+
+Plug 'stephpy/vim-yaml'
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
